@@ -89,12 +89,17 @@ export async function getNodeTypesByCategory(): Promise<Record<string, NodeTypeI
       // n8n 节点类型的 name 字段是必需的，如 'n8n-nodes-base.httpRequest'
       const nodeName = nodeType.name;
       
-      // n8n 节点类型可能没有 category 字段，使用 defaults.category 或其他逻辑
-      // 参考：n8n 的 nodeTypes.store.ts 中的分类逻辑
+      // n8n 使用 codex.categories 进行节点分类
+      // 参考 n8n 源码: packages/core/src/nodes-loader/directory-loader.ts
+      // Codex 结构: { categories: string[], subcategories: {...}, resources: {...}, alias: string[] }
       let categories: string[] = [];
       
-      // 优先使用 defaults.category
-      if (nodeType.defaults?.category) {
+      // 优先使用 codex.categories（n8n 的标准分类方式）
+      if (nodeType.codex?.categories && Array.isArray(nodeType.codex.categories) && nodeType.codex.categories.length > 0) {
+        categories = nodeType.codex.categories;
+      }
+      // 如果没有 codex，尝试使用 defaults.category
+      else if (nodeType.defaults?.category) {
         categories = Array.isArray(nodeType.defaults.category) 
           ? nodeType.defaults.category 
           : [nodeType.defaults.category];

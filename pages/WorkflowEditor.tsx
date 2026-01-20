@@ -10,6 +10,7 @@ import { ExecutionLogPanel, ExecutionLog } from '../components/ExecutionLogPanel
 import { WorkflowEditorLayout } from '../components/workflow';
 import { WorkflowConnectionsRenderer } from '../components/WorkflowConnections';
 import { NodesListPanel } from '../components/workflow/NodesListPanel';
+import { NodeSelectorModal } from '../components/workflow/NodeSelectorModal';
 import { NodeIcon } from '../components/workflow/NodeIcon';
 import { CanvasNodeRenderer } from '../components/workflow/CanvasNodeRenderer';
 import { CanvasNodeDefault } from '../components/workflow/CanvasNodeDefault';
@@ -184,6 +185,10 @@ const WorkflowEditor: React.FC = () => {
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
+  
+  // Node Selector Modal State
+  const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
+  const [selectedNodeType, setSelectedNodeType] = useState<any>(null);
   const [versionDropdownOpen, setVersionDropdownOpen] = useState(false);
   const [workflowVersionId, setWorkflowVersionId] = useState<string | undefined>(undefined);
   const [isWorkflowSettingsModalOpen, setIsWorkflowSettingsModalOpen] = useState(false);
@@ -2298,6 +2303,26 @@ const WorkflowEditor: React.FC = () => {
       }
   };
 
+  // 处理节点选择modal中的节点选择
+  const handleNodeSelectorNodeSelected = async (nodeType: any) => {
+      if (!nodeType) return;
+      
+      // 判断是触发器节点还是普通节点
+      if (nodeType.nodeType) {
+          // 触发器节点
+          handleAddN8nNode(nodeType.nodeType);
+      } else if (nodeType.name) {
+          // 普通节点
+          handleAddN8nNode(nodeType.name);
+      }
+  };
+
+  // 处理添加触发器
+  const handleAddTrigger = () => {
+      // 切换到触发器选择视图
+      console.log('添加另一个触发器');
+  };
+
   const handleRunWorkflow = () => {
       handleExecuteWorkflow();
   };
@@ -2667,7 +2692,7 @@ const WorkflowEditor: React.FC = () => {
             {/* --- Left Floating Toolbar (Editor Mode) --- */}
             {viewMode === 'EDITOR' && (
                 <div className="absolute left-6 top-20 flex flex-col gap-4 z-20">
-                    <button onClick={(e) => { e.stopPropagation(); setActivePanel(activePanel === 'ADD_NODE' ? 'NONE' : 'ADD_NODE'); }} className={`trigger-add-node w-10 h-10 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] hover:shadow-lg hover:text-blue-600 rounded-xl flex items-center justify-center transition-all border ${activePanel === 'ADD_NODE' ? 'border-blue-500 text-blue-600 ring-2 ring-blue-100' : 'border-slate-100 text-slate-600'}`}><Plus size={20} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setIsNodeSelectorOpen(true); }} className={`trigger-add-node w-10 h-10 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] hover:shadow-lg hover:text-blue-600 rounded-xl flex items-center justify-center transition-all border ${isNodeSelectorOpen ? 'border-blue-500 text-blue-600 ring-2 ring-blue-100' : 'border-slate-100 text-slate-600'}`}><Plus size={20} /></button>
                     <button onClick={() => setActivePanel('GLOBAL_SEARCH')} className="w-10 h-10 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] hover:shadow-lg hover:text-blue-600 rounded-xl flex items-center justify-center text-slate-600 transition-all border border-slate-100"><Search size={20} /></button>
                     <button onClick={addNote} className="w-10 h-10 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] hover:shadow-lg hover:text-blue-600 rounded-xl flex items-center justify-center text-slate-600 transition-all border border-slate-100"><FileText size={20} /></button>
                     <button onClick={() => setActivePanel(activePanel === 'AI_SIDEBAR' ? 'NONE' : 'AI_SIDEBAR')} className={`w-10 h-10 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] hover:shadow-lg hover:text-blue-600 rounded-xl flex items-center justify-center transition-all border ${activePanel === 'AI_SIDEBAR' ? 'border-blue-500 text-blue-600 ring-2 ring-blue-100' : 'border-slate-100 text-slate-600'}`}><Wand2 size={20} /></button>
@@ -4194,6 +4219,16 @@ const WorkflowEditor: React.FC = () => {
             onSave={handleCredentialSave}
           />
         )}
+
+        {/* Node Selector Modal */}
+        <NodeSelectorModal
+          isOpen={isNodeSelectorOpen}
+          onClose={() => setIsNodeSelectorOpen(false)}
+          hasTrigger={n8nNodes.some(node => node.type.includes('Trigger') || node.type === 'n8n-nodes-base.manualTrigger')}
+          onNodeSelected={handleNodeSelectorNodeSelected}
+          onAddTrigger={handleAddTrigger}
+          nodeTypesByCategory={nodeTypesByCategory}
+        />
 
         {/* Execution Log Panel - Now handled by WorkflowEditorLayout */}
         {/* Old ExecutionLogPanel removed */}
