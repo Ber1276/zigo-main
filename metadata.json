@@ -1,0 +1,5 @@
+{
+  "name": "智构 Zigo",
+  "description": "一个用于注册、管理和可视化 n8n 二次开发工作流外部 API 和 MCP 工具的集中化平台。",
+  "requestFramePermissions": []
+}
